@@ -53,7 +53,7 @@ import time
 
 def connectToBox(com):
     #try:
-        ser = serial.Serial(com, 9600, timeout=0.5)
+        ser = serial.Serial(com, 9600, timeout=1.0, inter_byte_timeout=0.1)
         ser.flushInput()
         ser.flushOutput()
         #time.sleep(3)
@@ -91,7 +91,7 @@ def disConnectUSB(ser, timeout, usb):
         cmdBytes = bytearray(cmdStr, "ascii")
         ser.write(cmdBytes)
         time.sleep(timeout)
-        read_val = ser.read(size=64)
+        read_val = ser.read(size=32) #
         print(read_val)
     except serial.SerialException as e:
         print("disConnectUSB failed with " + str(e))
@@ -102,8 +102,8 @@ def disConnAnyUSB(ser, timeout):
         cmdStr = "A\r"
         cmdBytes = bytearray(cmdStr, "ascii")
         ser.write(cmdBytes)
-        time.sleep(timeout)
-        read_val = ser.read(size=64)
+        time.sleep(timeout + 0.5)
+        read_val = ser.read(size=32)
         print(read_val)
     except serial.SerialException as e:
         print("disConnectUSB failed with " + str(e))
@@ -115,10 +115,34 @@ def version(ser, timeout):
         cmdBytes = bytearray(cmdStr, "ascii")
         ser.write(cmdBytes)
         time.sleep(timeout)
-        read_val = ser.read(size=64)
+        read_val = ser.read(size=32)
         print(repr(read_val))
     except serial.SerialException as e:
         print("Version failed with " + str(e))
+
+def info(ser, timeout):
+    try:
+        print("Info :")
+        cmdStr = "I" + "\r"
+        cmdBytes = bytearray(cmdStr, "ascii")
+        ser.write(cmdBytes)
+        time.sleep(timeout)
+        read_val = ser.read(size=32)
+        print(str(read_val))
+    except serial.SerialException as e:
+        print("Status failed with " + str(e))
+
+def status(ser, timeout):
+    try:
+        print("Status :")
+        cmdStr = "S" + "\r"
+        cmdBytes = bytearray(cmdStr, "ascii")
+        ser.write(cmdBytes)
+        time.sleep(timeout)
+        read_val = ser.read(size=32)
+        print(str(read_val))
+    except serial.SerialException as e:
+        print("Status failed with " + str(e))
 
 def usage():
     print("Usage: zus.py [N|f] ")
@@ -132,8 +156,8 @@ def main(argv):
     #
     comport = "COM7"
     usbport = -1
-    timeout = 1
-    discTimeout = 1
+    timeout = 0.5
+    #discTimeout = 1
     ser = None
     cmd_p_on = False;
     cmd_poff = False;
@@ -198,9 +222,13 @@ def main(argv):
                 disConnAnyUSB(ser, timeout)
             elif (cmd_stat):
                 version(ser, timeout)
+                info(ser, timeout)
+                status(ser, timeout)
             else:
                 print ("Error!")
         except serial.SerialException as e:
+            print("Failed with exception: " + str(e))
+        except ValueError as e:
             print("Failed with exception: " + str(e))
         except KeyboardInterrupt:
             print("Bye!")
