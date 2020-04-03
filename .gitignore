@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# No need of backup files :
+*.bak
+# Neither Eclipse project
+.project
+# Nor PyDev project
+.pydevproject
