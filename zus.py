@@ -57,7 +57,7 @@ def connectToBox(com):
         ser.flushInput()
         ser.flushOutput()
         #time.sleep(3)
-        print("Connected to " + com)
+        #print("Connected to " + com)
         #read_val = ser.read(size=64)
         #print(read_val)
         return ser
@@ -67,8 +67,9 @@ def connectToBox(com):
 
 def disconnectFromBox(ser):
     try:
-        ser.close()
-        print("Disconnected")
+        if (ser is not None):
+            ser.close()
+        #print("Disconnected")
     except serial.SerialException as e:
         print("disconnectFromBox failed with " + str(e))
 
@@ -102,7 +103,7 @@ def disConnAnyUSB(ser, timeout):
         cmdStr = "A\r"
         cmdBytes = bytearray(cmdStr, "ascii")
         ser.write(cmdBytes)
-        time.sleep(timeout + 0.5)
+        time.sleep(timeout + 0.5) #
         read_val = ser.read(size=32)
         print(read_val)
     except serial.SerialException as e:
@@ -132,22 +133,26 @@ def info(ser, timeout):
     except serial.SerialException as e:
         print("Status failed with " + str(e))
 
-def status(ser, timeout):
+def status(ser, tmout):
     try:
-        print("Status :")
+        print("Conn.port :")
         cmdStr = "S" + "\r"
         cmdBytes = bytearray(cmdStr, "ascii")
         ser.write(cmdBytes)
-        time.sleep(timeout)
+        time.sleep(tmout)
         read_val = ser.read(size=32)
         print(str(read_val))
     except serial.SerialException as e:
         print("Status failed with " + str(e))
 
 def usage():
-    print("Usage: zus.py [N|f] ")
+    print("Usage: ")
+    print("      zus.py [N|f] : connect / disconnect port;")
     print("               N: the port number going be connected, [0-7];")
     print("               f: disconnect any port; ")
+    print("      zus.py -s    : get box F/W version & available ports; ")
+    print("      zus.py -p    : get connected port, [0-7] if connected, none if no port connected; ")
+    print("      zus.py -h    : help - this message; ")
 
 #MAIN is HERE!!!
 
@@ -161,6 +166,7 @@ def main(argv):
     ser = None
     cmd_p_on = False;
     cmd_poff = False;
+    cmd_psts = False;
     cmd_help = False;
     cmd_stat = False;
     #
@@ -172,6 +178,8 @@ def main(argv):
             cmd_p_on = True
         elif (argv[1].lower() == 'f'):
             cmd_poff = True
+        elif (argv[1].lower() == '-p'):
+            cmd_psts = True
         elif (argv[1].lower() == '-s'):
             cmd_stat = True
         elif (argv[1].lower() == '-h'):
@@ -213,17 +221,18 @@ def main(argv):
         usage()
         sys.exit(2)
     
-    if (cmd_p_on or cmd_poff or cmd_stat):
+    if (cmd_p_on or cmd_poff or cmd_psts or cmd_stat):
         try:
             ser = connectToBox(comport)
             if (cmd_p_on):
                 connectUSB(ser, timeout, usbport)
             elif (cmd_poff):
                 disConnAnyUSB(ser, timeout)
+            elif (cmd_psts):
+                status(ser, tmout=timeout)
             elif (cmd_stat):
                 version(ser, timeout)
                 info(ser, timeout)
-                status(ser, timeout)
             else:
                 print ("Error!")
         except serial.SerialException as e:
