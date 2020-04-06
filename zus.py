@@ -69,7 +69,7 @@ def disconnectFromBox(ser):
     try:
         if (ser is not None):
             ser.close()
-        #print("Disconnected")
+        #print("Disconnected") 
     except serial.SerialException as e:
         print("disconnectFromBox failed with " + str(e))
 
